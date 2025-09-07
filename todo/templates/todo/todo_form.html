@@ -1,0 +1,59 @@
+{% extends 'todo/base.html' %}
+
+{% block title %}{{ action }} Todo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-{% if action == 'Create' %}plus{% else %}edit{% endif %} me-2"></i>
+                    {{ action }} Todo
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{% if todo %}{{ todo.title }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                rows="3" placeholder="Enter todo description...">{% if todo %}{{ todo.description }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Priority</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low" {% if todo.priority == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if todo.priority == 'medium' or not todo %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if todo.priority == 'high' %}selected{% endif %}>High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="due_date" class="form-label">Due Date</label>
+                        <input type="datetime-local" class="form-control" id="due_date" name="due_date" 
+                               value="{% if todo.due_date %}{{ todo.due_date|date:'Y-m-d\TH:i' }}{% endif %}">
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'todo_list' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ action }} Todo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
