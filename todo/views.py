@@ -1,27 +1,56 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.db.models import Q
 from .models import Todo
 
-# Basic CRUD views - September 10 development
+# Enhanced views with search and filtering - September 15 development
 
 def todo_list(request):
-    """Display all todos"""
-    todos = Todo.objects.all().order_by('-created_at')
-    return render(request, 'todo/todo_list.html', {'todos': todos})
+    """Display all todos with search and filter functionality"""
+    search_query = request.GET.get('search', '')
+    filter_status = request.GET.get('filter', 'all')
+    
+    todos = Todo.objects.all()
+    
+    # Search functionality
+    if search_query:
+        todos = todos.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
+    
+    # Filter functionality
+    if filter_status == 'completed':
+        todos = todos.filter(completed=True)
+    elif filter_status == 'pending':
+        todos = todos.filter(completed=False)
+    
+    context = {
+        'todos': todos,
+        'search_query': search_query,
+        'filter_status': filter_status,
+    }
+    return render(request, 'todo/todo_list.html', context)
 
 def todo_create(request):
     """Create a new todo"""
     if request.method == 'POST':
         title = request.POST.get('title')
         description = request.POST.get('description')
-        priority = request.POST.get('priority', 'medium')
+        priority = request.POST.get('priority')
+        due_date = request.POST.get('due_date')
         
         if title:
-            Todo.objects.create(
-                title=title, 
+            todo = Todo.objects.create(
+                title=title,
                 description=description,
-                priority=priority
+                priority=priority,
+                due_date=due_date if due_date else None
             )
+            messages.success(request, f'Todo "{todo.title}" created successfully!')
             return redirect('todo_list')
+        else:
+            messages.error(request, 'Title is required!')
     
     return render(request, 'todo/todo_form.html', {'action': 'Create'})
 
